@@ -137,3 +137,6 @@ yhat = model.predict(encoded, verbose=0)
 # merging predictions with testset ids
 yhat = pandas.DataFrame(yhat)
 pandas.merge(pandas.DataFrame(testdataset.iloc[:100,0]), df, left_index=True, right_index=True)
+
+
+
