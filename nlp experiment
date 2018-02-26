@@ -1,0 +1,139 @@
+# Experimenting with Natural Language Processing
+
+"""
+- potentially add a ConvNet and max pooling layer
+- potentially add a word Embedding layer
+
+- try with SVM classifiers
+
+"""
+
+import pandas
+import numpy as np
+
+train = pandas.read_csv("train.csv")
+train = train.sample(frac=1).reset_index(drop=True)
+
+import math
+X = train.iloc[:int(math.floor(((train.shape[0])*0.95))),1]
+Y = train.iloc[:int(math.floor(((train.shape[0])*0.95))),2:]
+
+xtest = train.iloc[int(math.floor(((train.shape[0])*0.95))):,1]
+ytest = train.iloc[int(math.floor(((train.shape[0])*0.95))):,2:]
+
+Y = Y.as_matrix()
+ytest = ytest.as_matrix()
+
+
+from keras.preprocessing.text import Tokenizer
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.layers import Dropout
+from pandas import DataFrame
+from matplotlib import pyplot
+
+def prepare_data(train_docs, test_docs, mode):
+	# create the tokenizer
+	tokenizer = Tokenizer()
+	# fit the tokenizer on the documents
+	tokenizer.fit_on_texts(train_docs)
+	# encode training data set
+	Xtrain = tokenizer.texts_to_matrix(train_docs, mode=mode)
+	# encode training data set
+	Xtest = tokenizer.texts_to_matrix(test_docs, mode=mode)
+	return Xtrain, Xtest
+
+modes = ['binary', 'count', 'tfidf', 'freq']
+results = DataFrame()
+for mode in modes:
+	# prepare data for mode
+    Xtrain, Xtest = prepare_data(X, xtest, mode)
+	# evaluate model on data for mode
+    scores = list()
+    n_repeats = 10
+    n_words = Xtest.shape[1]
+    for i in range(n_repeats):
+	# define network
+        model = Sequential()
+        model.add(Dense(50, input_shape= (n_words,), activation='relu'))
+        model.add(Dense(6, activation='sigmoid'))
+		# compile network
+        model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+		# fit network
+        model.fit(Xtrain, Y, epochs=30, verbose=2)
+		# evaluate
+        loss, acc = model.evaluate(Xtest, ytest, verbose=0)
+        scores.append(acc)
+        print('%d accuracy: %s' % ((i+1), acc))
+    results[mode] = scores
+# summarize results
+print(results.describe())
+
+
+
+import pandas
+import numpy as np
+
+train = pandas.read_csv("train.csv")
+train = train.sample(frac=1).reset_index(drop=True)
+
+import math
+X = train.iloc[:int(math.floor(((train.shape[0])*0.95))),1]
+Y = train.iloc[:int(math.floor(((train.shape[0])*0.95))),2:]
+
+xtest = train.iloc[int(math.floor(((train.shape[0])*0.95))):,1]
+ytest = train.iloc[int(math.floor(((train.shape[0])*0.95))):,2:]
+
+Y = Y.as_matrix()
+ytest = ytest.as_matrix()
+
+
+from keras.preprocessing.text import Tokenizer
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.layers import Dropout
+from pandas import DataFrame
+from matplotlib import pyplot
+
+
+# create the tokenizer
+tokenizer = Tokenizer()
+# fit the tokenizer on the documents
+tokenizer.fit_on_texts(X)
+# encode training data set
+Xtrain = tokenizer.texts_to_matrix(X, mode='tfidf')
+# encode training data set
+Xtest = tokenizer.texts_to_matrix(xtest, mode='tfidf')
+
+results = DataFrame()
+
+	# evaluate model on data for mode
+scores = list()
+n_repeats = 1
+n_words = Xtest.shape[1]
+for i in range(n_repeats):
+	# define network
+    model = Sequential()
+    model.add(Dense(50, input_shape= (n_words,), activation='relu'))
+    model.add(Dense(6, activation='sigmoid'))
+	# compile network
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+		# fit network
+    model.fit(Xtrain, Y, epochs=2, verbose=2)
+	# evaluate
+    loss, acc = model.evaluate(Xtest, ytest, verbose=0)
+    scores.append(acc)
+    print('%d accuracy: %s' % ((i+1), acc))
+results['tfidf'] = scores
+# predictions / probabilities
+testdataset = pandas.read_csv("test.csv")
+testset = testdataset.iloc[:,1]
+testset = testset.astype(str)
+
+encoded = tokenizer.texts_to_matrix(testset, mode='tfidf')
+# prediction
+yhat = model.predict(encoded, verbose=0)
+
+# merging predictions with testset ids
+yhat = pandas.DataFrame(yhat)
+pandas.merge(pandas.DataFrame(testdataset.iloc[:100,0]), df, left_index=True, right_index=True)
