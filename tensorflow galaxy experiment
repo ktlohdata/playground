@@ -1,5 +1,5 @@
 # Experiment using TensorFlow to classify galaxies
-# Based on Andrew Ng's Deep Learning course on coursera.org.
+# Based on Andrew Ng's Deep Learning course exercises on coursera.org.
 
 
 import math
